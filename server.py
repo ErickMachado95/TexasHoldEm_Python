@@ -1,6 +1,6 @@
 import socket
 import threading
-import buffer
+import comm
 
 
 HEADERSIZE = 8 
@@ -13,8 +13,8 @@ game_lock = threading.Lock()
 
 def server_control(client_socket,address):
     intro_msg = "Welcome to e-poker!"
-    buffer.send_msg(client_socket,intro_msg)
-    msg = buffer.recv_msg(client_socket)
+    comm.send_msg(client_socket,intro_msg)
+    msg = comm.recv_msg(client_socket)
     if msg == "HOST":
         host_setup(client_socket)
     else:
@@ -26,15 +26,15 @@ def server_control(client_socket,address):
 
 def host_setup(socket):
     while True:
-        game_name = buffer.recv_msg(socket)
+        game_name = comm.recv_msg(socket)
         game_lock.acquire()
         if game_name in games:
-            buffer.send_msg(socket,"FALSE")
+            comm.send_msg(socket,"FALSE")
             game_lock.release()
             continue
         else:
             games[game_name] = "BLAH"
-            buffer.send_msg(socket,"TRUE")
+            comm.send_msg(socket,"TRUE")
             game_lock.release()
             break
 
