@@ -2,39 +2,39 @@
 import deck_of_cards
  
 card_eval = {"A_low": -1,"2":0,"3":1,"4":2,"5":3,"6":4,"7":5,"8":6,"9":7,"10":8,"J":9,"Q":10,"K":11,"A":12}
-    
+card_rank_eval = {"high":0,"one_pair":1,"two_pair":2,"three_kind":3,"straight":4,"flush":5,"full_house":6,"four_kind":7,"straight_flush":8}
 
 def evalute_cards(community,hand):
     cards = community + hand
     order_cards(cards)
-    hand = False
-    hand_cards = None
     hand, hand_cards = check_straight_flush(cards)
     if hand:
-       return
+       return("straight_flush",hand_cards)
     hand, hand_cards = check_four_kind(cards)
     if hand:
-        return
+        return("four_kind",hand_cards)
     hand,hand_cards = check_full_house(cards)
     if hand:
-        return
+        return("full_house",hand_cards)
     hand, hand_cards = check_flush(cards)
     if hand:
-        return
+        return("flush",hand_cards)
     hand, hand_cards = check_straight(cards)
     if hand:
-        return
+        return("straight",hand_cards)
     hand, hand_cards = check_three_kind(cards)
     if hand:
-        return
+        return("three_kind",hand_cards)
     hand, hand_cards = check_two_pair(cards)
     if hand:
-        return
+        return("two_pair",hand_cards)
     hand, hand_cards = check_one_pair(cards)
     if hand:
-        return
-
-    return
+        return("one_pair",hand_cards)
+    hand, hand_cards = check_high_card(cards)
+    if hand:
+        return("high",hand_cards)
+    return None #should never get to this line. 
 
 #order cards from highest to lowest
 def order_cards(cards):
@@ -46,7 +46,18 @@ def order_cards(cards):
                 cards[k-1] = temp
             else:
                 break
+    return
 
+
+def check_high_card(cards):
+    condition = True
+    best_hand = []
+    for i in range(0,5):
+        best_hand.append(cards[i].value)
+
+    return (condition,best_hand)
+
+        
 def check_one_pair(cards): 
     cards_c = cards.copy()
     condition = False
@@ -92,9 +103,9 @@ def check_two_pair(cards):
                     cards_c.remove(j)
             else:
                 condition = True
-                best_hand[1].append(dick[i][0].value)
+                best_hand[1].append(dic[i][0].value)
                 for j in dic[i]:
-                    card_c.remove(j)
+                    cards_c.remove(j)
                 best_hand[2].append(cards_c[0].value)         
                 break
     return (condition,best_hand)
