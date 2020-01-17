@@ -21,7 +21,7 @@ def server_control(client_socket,address):
     if msg == "HOST":
         game_setup = host_setup(client_socket)
     else:
-        join_setup(client_socket)
+        game_setup = join_setup(client_socket)
     if not game_setup:
         client_socket.close()
         print(f"Connection from {address} closed")
@@ -37,7 +37,7 @@ def run_game(game_name,expected_players):
     while True: 
         current_num_players = len(running_game.list_of_player_names())
         if current_num_players != old_num_players:
-            wait_players = expected_players - current_num_players
+            wait_players = int(expected_players) - current_num_players
             for player in running_game.list_of_players():
                 comm.send_msg(player.socket,"MSG")
                 comm.send_msg(player.socket,f"Waiting, on {wait_players} player(s)")
@@ -67,7 +67,6 @@ def host_setup(socket):
                 while True:
                     num_players = comm.recv_msg(socket)
                     if num_players:
-                            comm.send_msg(socket,"TRUE")
                             while True:
                                 player_name = comm.recv_msg(socket)
                                 if player_name:
@@ -75,16 +74,10 @@ def host_setup(socket):
                                         comm.send_msg(socket,"FALSE")
                                         continue
                                     else:
+                                        comm.send_msg(socket, "TRUE")
                                         games[game_name].add_player(socket,player_name)
-                                        comm.send_msg(socket,"TRUE")
-                                        response = comm.recv_msg(socket)
-                                        if response:
-                                            if response == "TRUE":
-                                                rg = threading.Thread(target=run_game, args=(game_name, num_players,))
-                                                rg.start()
-                                            else:
-                                                game_lock.release()
-                                                return False
+                                        rg = threading.Thread(target=run_game, args=(game_name, num_players,))
+                                        rg.start()
                                         game_lock.release()
                                         return True
                                 else:
@@ -119,11 +112,13 @@ def join_setup(socket):
                             comm.send_msg(socket,"TRUE")
                             games[game_name].add_player(socket,player_name)
                             game_lock.release()
+                            print("waiting on players...")
                             return True
                     else:
                         game_lock.release()
                         return False
             else:
+                comm.send_msg(socket,"FALSE")
                 game_lock.release()
                 continue
 
@@ -139,7 +134,7 @@ host_ip = socket.gethostbyname(host_name)
 print(f"Host name is: {host_name}")
 print(f"Host ip is : {host_ip}")
 
-port = 1241
+port = 1236
 s.bind(('', port))
 print(f"Port is: {port}")
 s.listen(4)

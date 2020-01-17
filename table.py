@@ -3,17 +3,18 @@ import deck_of_cards
 
 
 class Hand:
-    def __init__(self)
+    def __init__(self):
         self.cards = []
         self.evaluation = None
         self.high_card = None
         self.low_card  = None
 
 class Player:
-    def __init__(self,name,chips):
+    def __init__(self,socket,name,chips):
+        self.socket = socket
         self.name = name
         self.chips = chips
-        self.hand = {}
+        self.hand = []
 
  
     def sub_chips(self,amount):
@@ -42,7 +43,7 @@ class Pot:
                 if player.name == player_name:
                     return True
     
-    def add_player(self):
+    def add_player(self,player):
         """Adds player to the pot""" 
         if not self.player_exists(player.name): 
             self.player_list.append(player)

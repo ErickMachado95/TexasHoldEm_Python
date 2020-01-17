@@ -19,54 +19,31 @@ def playing(socket):
                 print(f"ERROR, in SERVER MESSAGE. MESSAGE IS {msg} EXPECTED MSG OR TABLE")
         else:
             break 
- 
-def host(socket):
-    game_name = input("Input name of your game")
+
+
+
+def game_name_host(socket):
+    game_name = input("Input name of your game: ")
     comm.send_msg(socket,game_name)
-
     while True:
-        game_est = comm.recv_msg(socket);
-        if game_est == "TRUE":
-            print(f"Game {game_name} has been established")
-            while True:
-                try:
-                    player_cnt = int(input("Enter player count (MAX 4): "))
-                    if 1 < player_cnt < 5:
-                        comm.send_msg(socket,str(player_cnt))
-                        player_name = input("Enter player name: ")
-                        comm.send_msg(socket,player_name)
-                        while True:
-                            est_stat = comm.recv_msg(socket)
-                            if est_stat:
-                                if est_stat == "TRUE":
-                                    print(f"Player \"{player_name}\" added to game")
-                                    comm.send_msg(socket,"TRUE")
-                                    playing(socket)
-                                elif est_stat == "FALSE":
-                                    print(f"Player \"{player_name}\" in \"{game_name}\" already exists")
-                                    player_name = input("Enter new player name: ")
-                                    continue
-                                else:
-                                    print(f"ERROR IN MESSAGING, received message {est_stat} but expected TRUE or FALSE")
-                            else: 
-                                return 
-                        break
-                    else:
-                        print("Wrong number of players")
-                except:
-                    print("Wrong input")
-
-        elif game_est == "FALSE":
-            print(f"Sorry game {game_name} already exists")
-            game_name = input("Type in other game name: ")
-            comm.send_msg(socket, game_name)
-        else:
-            return
+        game_est = comm.recv_msg(socket)
+        if game_est:
+            if game_est == "TRUE":
+                print(f"Game {game_name} has been established")
+                return True
+            elif game_est == "FALSE":
+                print(f"Sorry game {game_name} already exists")
+                game_name = input("Enter other game name: ")
+                comm.send_msg(socket, game_name)
+                continue
+            else:
+                print("ERROR IN TRANSMISSION")
+                return False
+        else: 
+            return False
 
 
-
-
-def join(socket):
+def game_name_join(socket):
     game_name = input("Input name of the game to join: ")
     comm.send_msg(socket,game_name)
     while True:
@@ -74,41 +51,71 @@ def join(socket):
         if game_est:
             if game_est == "TRUE":
                 print("Joined game")
-                player_name = input("Enter player name: ")
-                comm.send_msg(socket,game_name)
-                while True:
-                    msg = socket.recv_msg(socket)
-                    if msg:
-                        if msg == "TRUE": 
-                            print(f"Player \"{player_name}\" added to game")
-                            break
-                        elif msg == "FALSE":
-                            print(f"Player \"{player_name}\" in \"{game_name}\" already exists")
-                            player_name = input("Enter new player name: ")
-                            continue
-                    else:
-                        return
-
-                while True:
-                    msg = socket.revc_msg(socket)
-                    if msg:
-                        if msg == "BEGIN":
-                            playing(socket)
-                            return
-                        else:
-                            print(msg)
-                    else:
-                        return
-                return 
+                return True
             elif game_est == "FALSE":
-                print("No game \"{game_name}\" exits")
-                game_name = input("Input new game name: ")
+                print("Game \"{game_name}\" does not exist")
+                game_name = input("Input other game name: ")
                 comm.send_msg(socket,game_name)
                 continue
+            else:
+                print("ERROR IN TRANSMISSION")
+                return False
         else:
-            break
+            return False
+
+def player_name(socket):
+    player_name = input("Enter player name: ")
+    comm.send_msg(socket,player_name)
+    while True:
+        player_added = comm.recv_msg(socket)
+        if player_added:
+            if player_added == "TRUE":
+                print(f"Player \"{player_name}\" added to game")
+                return True
+            elif player_added == "FALSE":
+                print(f"Player \"{player_name}\" already exists")
+                player_name = input("Enter other player name: ")
+                comm.send_msg(socket,player_name)
+                continue
+            else:
+                print("ERROR IN TRANSMISSION")
+                return False
+        else:
+            return False
+def num_players(socket):
+    while True:
+        try: 
+            num = int(input("Enter the number of players (2-4): "))
+            if 1 < num < 5: 
+                comm.send_msg(socket,str(num))
+                return True
+            else: 
+                print("Invalid number of players")
+        except:
+            print("Invalid input")
+    
+
+def host(socket):
+    try:
+        if game_name_host(socket):
+            if num_players(socket):
+                if player_name(socket):
+                    print("waiting for players...")
+                    playing(socket) 
+ 
+    except Exception as e:
+        print(f"Error occurred due to exception: {e}")
+
+
+def join(socket):
+    try:
+        if game_name_join(socket):
+            if player_name(socket):
+                playing(socket)
+
+    except Exception as e:
+        print(f"Error occurred ude to exception: {e}")
         
-    return
 
        
 
